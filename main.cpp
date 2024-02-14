@@ -28,7 +28,7 @@ class PlayerParent
 {
     public:
     float theta =0;
-    int PlayerRadius=12;
+    int PlayerRadius=15;
     int PlayerRelPosx;
     int PlayerRelPosy;
     int PlayerMomentumx=1;
@@ -36,9 +36,10 @@ class PlayerParent
     int PlayerCalcPosx(float PlayerMomentumx, int PlayerRelPosx);
     int PlayerCalcPosy(float PlayerMomentumy, int PlayerRelPosy);
     void DrawShip(float theta, int PlayerRelPosx, int PlayerRelPosy, int PlayerRadius );
+    bool isdead=false;
 };
 
-
+bool collision(int playerposx,int playerposy ,int playerradius);
 int PlayerParent :: PlayerCalcPosx(float PlayerMomentumx, int PlayerRelPosx)
 {
 PlayerRelPosx +=PlayerMomentumx;
@@ -116,7 +117,10 @@ while(open)
     //clear the window
 SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 SDL_RenderClear(renderer);
-
+if (Player.isdead==true)
+{
+open = false;
+}
 while (SDL_PollEvent(&keyboard))
 {
     if (keyboard.type ==SDL_KEYDOWN)
@@ -183,6 +187,7 @@ DrawAsteroid();
 SDL_RenderPresent(renderer);
 SDL_Delay(5);
 
+Player.isdead = collision( Player.PlayerRelPosx,Player.PlayerRelPosy ,Player.PlayerRadius);
 
 //wall wrap
 Player.PlayerRelPosx = ScreenWrapX(Player.PlayerRelPosx);
@@ -288,4 +293,21 @@ bool truefalse()
 {
     bool maybe=rand()%2==0;
     return maybe;
+}
+
+bool collision(int playerposx,int playerposy ,int playerradius)
+{
+for (int i = 0; i<MAXASS; i ++)
+{
+    int distancex = asteroid[i].assrelposx-playerposx;
+    int distancey =asteroid[i].assrelposy- playerposy;
+    int squaredist = distancex * distancex + distancey *distancey;
+    int combinedradsquare = (asteroid[i].assradius + playerradius) *(asteroid[i].assradius + playerradius);
+    if (combinedradsquare > squaredist)
+    {
+        return 1;
+    }
+    
+}
+return 0;
 }
