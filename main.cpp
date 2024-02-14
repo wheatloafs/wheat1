@@ -6,6 +6,8 @@
 SDL_Window* window= nullptr;
 SDL_Renderer* renderer=nullptr;
 SDL_Event keyboard;
+int ScreenWrapX (int relposx);
+int ScreenWrapY(int relposy);
 const int WIDTH = 1400;
 const int HEIGHT=890;
 const float MOMENTUMCONSTANT=0.01;
@@ -15,30 +17,70 @@ struct AsteroidParent{
     int assrelposx;
     int assradius;
     int asssides;
-    int assmomenty;
-    int assmomentx;
+   float assmomenty;
+    float assmomentx;
     bool assisdead;
     std :: vector<int> chaos;
 };
 AsteroidParent asteroid[MAXASS];
 
+class PlayerParent
+{
+    public:
+    float theta =0;
+    int PlayerRadius=12;
+    int PlayerRelPosx;
+    int PlayerRelPosy;
+    int PlayerMomentumx=1;
+    int PlayerMomentumy=1;
+    int PlayerCalcPosx(float PlayerMomentumx, int PlayerRelPosx);
+    int PlayerCalcPosy(float PlayerMomentumy, int PlayerRelPosy);
+    void DrawShip(float theta, int PlayerRelPosx, int PlayerRelPosy, int PlayerRadius );
+};
+
+
+int PlayerParent :: PlayerCalcPosx(float PlayerMomentumx, int PlayerRelPosx)
+{
+PlayerRelPosx +=PlayerMomentumx;
+return ScreenWrapX(PlayerRelPosx);
+}
+int PlayerParent :: PlayerCalcPosy(float PlayerMomentumy, int PlayerRelPosy)
+{
+PlayerRelPosy +=PlayerMomentumy;
+return ScreenWrapY(PlayerRelPosy);
+}
+
+void PlayerParent :: DrawShip(float theta, int PlayerRelPosx, int PlayerRelPosy, int PlayerRadius)
+{
+    int drawx=0;
+    int drawy=0;
+    std :: vector<SDL_Point> PlayerPoints;
+    drawx=PlayerRelPosx+cos(theta*M_PI/180) * 2 * PlayerRadius;
+    drawy=PlayerRelPosy+sin(theta*M_PI/180) * 2 * PlayerRadius;
+    PlayerPoints.push_back({drawx,drawy}) ;
+
+ drawx=PlayerRelPosx+cos((theta-126) * M_PI/ 180) * PlayerRadius;
+    drawy=PlayerRelPosy+sin((theta-126) * M_PI/ 180) * PlayerRadius;
+    PlayerPoints.push_back({drawx,drawy});
+
+    
+    drawx=PlayerRelPosx+cos((theta+126) * M_PI/180) * PlayerRadius;
+    drawy=PlayerRelPosy+sin((theta+126) * M_PI/180) * PlayerRadius;
+    PlayerPoints.push_back({drawx,drawy});
+
+    PlayerPoints.push_back(PlayerPoints[0]);
+   SDL_RenderDrawLines(renderer, PlayerPoints.data(), PlayerPoints.size());
+}
+
 void DrawAsteroid();
 
 void AssInit();
 
-int ScreenWrapX (int relposx);
-int ScreenWrapY(int relposy);
+
 
 bool truefalse();
 
 
-void DrawPlayerSouth(int relposx, int relposy, int radius);
-
-void DrawPlayerNorth(int relposx, int relposy, int radius);
-
-void DrawPlayerEast(int relposx, int relposy, int radius);
-
-void DrawPlayerWest(int relposx, int relposy, int radius);
 
 int main()
 {
@@ -56,8 +98,6 @@ SDL_SetRenderDrawColor(renderer,255,255,255,255);
 
 SDL_RenderSetScale(renderer,1,1);    
 //momentums
-float momentx=0.0;
-float momenty=0.0;
 
 //player radius for drawing
 int radius =10;
@@ -65,10 +105,18 @@ int radius =10;
 //initialize asteroid
 AssInit();
 
+// initialize player
+PlayerParent Player;
+Player.PlayerRelPosx=WIDTH/2;
+Player.PlayerRelPosy=HEIGHT/2;
 //should add a way to close the game sometime uhhhh gameloop
 bool open=true;
 while(open)
 {
+    //clear the window
+SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+SDL_RenderClear(renderer);
+
 while (SDL_PollEvent(&keyboard))
 {
     if (keyboard.type ==SDL_KEYDOWN)
@@ -76,16 +124,30 @@ while (SDL_PollEvent(&keyboard))
         switch (keyboard.key.keysym.sym)
         {
             case SDLK_UP:
-            momenty -=0.2;
-            break;
-            case SDLK_DOWN:
-            momenty +=0.2;
+                    Player.PlayerMomentumy += 2 * sin(Player.theta * M_PI/180);
+                    Player.PlayerMomentumx += 2 *  cos(Player.theta * M_PI/180) ;
+                    if ( Player.PlayerMomentumy >10)
+                    {
+                         Player.PlayerMomentumy=10;
+                    }
+                    else if (Player.PlayerMomentumy <-10)
+                    {
+                        Player.PlayerMomentumy =-10;
+                    }
+                    if (Player.PlayerMomentumx >10 )
+                    {
+                        Player.PlayerMomentumx=10;
+                    }
+                    else if (Player.PlayerMomentumx <-10)
+                    {
+                        Player.PlayerMomentumx =-10;
+                    }
             break;
             case SDLK_RIGHT:
-            momentx+=0.2;
+            Player.theta-=8;
             break;
             case SDLK_LEFT:
-            momentx-=0.2;
+            Player.theta+=8;
             break;
         }
     }
@@ -95,12 +157,10 @@ while (SDL_PollEvent(&keyboard))
     }
 }
 
-//clear the window
-SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-SDL_RenderClear(renderer);
+
 //update position
-relposy= relposy+momenty;
-relposx= relposx+momentx;
+
+
 //udate ass position
 for (int i = 0; i<MAXASS; i++)
 {
@@ -108,30 +168,16 @@ for (int i = 0; i<MAXASS; i++)
     asteroid[i].assrelposy += asteroid[i].assmomenty;
 }
 
+Player.PlayerRelPosx = Player.PlayerCalcPosx(Player.PlayerMomentumx, Player.PlayerRelPosx);
+Player.PlayerRelPosy = Player.PlayerCalcPosy(Player.PlayerMomentumy, Player.PlayerRelPosy);
+
 //draw the ship
-SDL_SetRenderDrawColor(renderer,255,255,255,255);
-if (fabs(momenty) > fabs(momentx) || (momenty==0&& momentx==0))
-{
-    if(momenty<=0)
-    {
-    DrawPlayerNorth(relposx,relposy,radius);
-    }
-    else
-    {
-      DrawPlayerSouth(relposx,relposy,radius);
-    }
-}
-else
-{
-    if (momentx >=0)
-    {
-         DrawPlayerEast( relposx,  relposy,  radius);
-    }
-    else
-    {
-        DrawPlayerWest(relposx,relposy,radius);
-    }
-}
+
+std::cout << "Ship Position: (" << Player.PlayerRelPosx << ", " << Player.PlayerRelPosy << ")" << std::endl;
+    SDL_SetRenderDrawColor(renderer,255,255,255,255);
+ Player.DrawShip(Player.theta, Player.PlayerRelPosx, Player.PlayerRelPosy, Player.PlayerRadius);
+
+
 DrawAsteroid();
 //render frame
 SDL_RenderPresent(renderer);
@@ -139,8 +185,8 @@ SDL_Delay(5);
 
 
 //wall wrap
-relposx = ScreenWrapX(relposx);
-relposy = ScreenWrapY(relposy);
+Player.PlayerRelPosx = ScreenWrapX(Player.PlayerRelPosx);
+Player.PlayerRelPosy = ScreenWrapY(Player.PlayerRelPosy);
 
 //ass wall wrap 
 for (int i =0; i<MAXASS; i++)
@@ -151,107 +197,6 @@ for (int i =0; i<MAXASS; i++)
 }
 return 0;
 }
-
-void DrawPlayerNorth(int relposx, int relposy, int radius)
-{
-std :: vector<SDL_Point> playerpoints;
-int topx=0;
-int topy =0;
-int lbottomx=0;
-int lbottomy=0;
-int rbottomx=0;
-int rbottomy=0;
-
-topx=relposx;
-topy=relposy-radius;
-playerpoints.push_back({topx,topy});
-
-lbottomx=relposx-(radius/2);
-lbottomy= relposy+radius;
-playerpoints.push_back({lbottomx,lbottomy});
-
-rbottomx=relposx+(radius/2);
-rbottomy=relposy+radius;
-playerpoints.push_back({rbottomx,rbottomy});
-playerpoints.push_back({topx,topy});
-SDL_RenderDrawLines( renderer, playerpoints.data(), playerpoints.size());
-
-}
-void DrawPlayerSouth(int relposx, int relposy, int radius)
-{
-std :: vector<SDL_Point> playerpoints;
-int topx=0;
-int topy =0;
-int lbottomx=0;
-int lbottomy=0;
-int rbottomx=0;
-int rbottomy=0;
-
-topx=relposx;
-topy=relposy+radius;
-playerpoints.push_back({topx,topy});
-
-lbottomx=relposx-(radius/2);
-lbottomy= relposy-radius;
-playerpoints.push_back({lbottomx,lbottomy});
-
-rbottomx=relposx+(radius/2);
-rbottomy=relposy-radius;
-playerpoints.push_back({rbottomx,rbottomy});
-playerpoints.push_back({topx,topy});
-SDL_RenderDrawLines( renderer, playerpoints.data(), playerpoints.size());
-
-}
-void DrawPlayerEast(int relposx, int relposy, int radius)
-{
-std :: vector<SDL_Point> playerpoints;
-int topx=0;
-int topy =0;
-int lbottomx=0;
-int lbottomy=0;
-int rbottomx=0;
-int rbottomy=0;
-
-topx=relposx+radius;
-topy=relposy;
-playerpoints.push_back({topx,topy});
-
-lbottomx=relposx-(radius/2);
-lbottomy= relposy+radius/2;
-playerpoints.push_back({lbottomx,lbottomy});
-
-rbottomx=relposx-(radius/2);
-rbottomy=relposy-radius/2;
-playerpoints.push_back({rbottomx,rbottomy});
-playerpoints.push_back({topx,topy});
-SDL_RenderDrawLines( renderer, playerpoints.data(), playerpoints.size());
-}
-
-void DrawPlayerWest(int relposx, int relposy, int radius)
-{
-std :: vector<SDL_Point> playerpoints;
-int topx=0;
-int topy =0;
-int lbottomx=0;
-int lbottomy=0;
-int rbottomx=0;
-int rbottomy=0;
-
-topx=relposx-radius;
-topy=relposy;
-playerpoints.push_back({topx,topy});
-
-lbottomx=relposx+(radius/2);
-lbottomy= relposy+radius/2;
-playerpoints.push_back({lbottomx,lbottomy});
-
-rbottomx=relposx+(radius/2);
-rbottomy=relposy-radius/2;
-playerpoints.push_back({rbottomx,rbottomy});
-playerpoints.push_back({topx,topy});
-SDL_RenderDrawLines( renderer, playerpoints.data(), playerpoints.size());
-}
-
 
 
 void DrawAsteroid()
@@ -320,37 +265,24 @@ void AssInit()
         
     }
 }
-int ScreenWrapY(int relposy)
-{
-    if (relposy<=0)
-{
-    relposy = HEIGHT-1;
-   
+int ScreenWrapX(int relposx) {
+    if (relposx <= 0) {
+        relposx = WIDTH - 1;
+    } else if (relposx >= WIDTH) {
+        relposx = 1;
+    }
+    return relposx;
 }
 
-if (relposy>=HEIGHT )
-{
-    relposy = 1;
-    
+int ScreenWrapY(int relposy) {
+    if (relposy <= 0) {
+        relposy = HEIGHT - 1;
+    } else if (relposy >= HEIGHT) {
+        relposy = 1;
+    }
+    return relposy;
 }
 
-return relposy;
-}
-int ScreenWrapX (int relposx)
-{
-    if (relposx<=0)
-{
-    relposx = WIDTH-1;
-   
-}
-
-if (relposx>=WIDTH )
-{
-    relposx = 1;
-    
-}
-return relposx;
-}
 
 bool truefalse()
 {
