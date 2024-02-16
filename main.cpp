@@ -12,6 +12,8 @@ const int WIDTH = 1400;
 const int HEIGHT=890;
 const float MOMENTUMCONSTANT=0.01;
 const int MAXASS=10;
+const int BULLETSIZE=5;
+const int MAXBULLET=10;
 struct AsteroidParent{
     int assrelposy;
     int assrelposx;
@@ -37,8 +39,41 @@ class PlayerParent
     int PlayerCalcPosy(float PlayerMomentumy, int PlayerRelPosy);
     void DrawShip(float theta, int PlayerRelPosx, int PlayerRelPosy, int PlayerRadius );
     bool isdead=false;
+    int lives= 3;
+    int invuln;
 };
-
+ class bulletparent
+ {
+    public:
+    float bulletmomentumx;
+    float bulletmomentumy;
+    int posx;
+    int posy;
+  bulletparent(int theta,int playerposx, int playerposy, int PlayerMomentumx, int PlayerMomentumy) 
+{
+    bulletmomentumx = 8 * cos(theta*M_PI/180) ;
+    bulletmomentumy = 8 * sin(theta*M_PI/180) ;
+    posx = playerposx+ bulletmomentumx; // Initialize position with player position
+    posy = playerposy+ bulletmomentumy;
+         if ( bulletmomentumy >20)
+                    {
+                         bulletmomentumy=20;
+                    }
+                    else if (bulletmomentumy <-20)
+                    {
+                        bulletmomentumy =-20;
+                    }
+                    if (bulletmomentumx >20 )
+                    {
+                        bulletmomentumx=20;
+                    }
+                    else if (bulletmomentumx <-20)
+                    {
+                        bulletmomentumx =-20;
+                    }
+    }
+ };
+std:: vector <bulletparent> bullets;
 bool collision(int playerposx,int playerposy ,int playerradius);
 int PlayerParent :: PlayerCalcPosx(float PlayerMomentumx, int PlayerRelPosx)
 {
@@ -77,7 +112,7 @@ void DrawAsteroid();
 
 void AssInit();
 
-
+void DrawBullet(int posx, int posy);
 
 bool truefalse();
 
@@ -117,16 +152,43 @@ while(open)
     //clear the window
 SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 SDL_RenderClear(renderer);
+
+
 if (Player.isdead==true)
 {
-open = false;
+Player.lives--;
+Player.invuln = 10;
+Player.PlayerRelPosx= WIDTH/2;
+Player.PlayerRelPosy= HEIGHT/2;
+Player.isdead=false;
+if (Player.lives==0)
+{
+    open=false;
 }
+
+
+
+}
+bool spaced=0;
 while (SDL_PollEvent(&keyboard))
 {
+  
     if (keyboard.type ==SDL_KEYDOWN)
     {
         switch (keyboard.key.keysym.sym)
         {
+            case SDLK_SPACE:
+              std :: cout << "space pressed";
+            if (bullets.size() < MAXBULLET && !spaced )
+            {
+                spaced=true;
+                std :: cout << "making bullet";
+                bulletparent NewBullet(Player.theta,Player.PlayerRelPosx, Player.PlayerRelPosy,Player.PlayerMomentumx, Player.PlayerMomentumy);
+                bullets.push_back(NewBullet);
+                
+            }
+
+            break;
             case SDLK_UP:
                     Player.PlayerMomentumy += 2 * sin(Player.theta * M_PI/180);
                     Player.PlayerMomentumx += 2 *  cos(Player.theta * M_PI/180) ;
@@ -153,12 +215,23 @@ while (SDL_PollEvent(&keyboard))
             case SDLK_LEFT:
             Player.theta+=8;
             break;
+            
         }
     }
     if (keyboard.type == SDL_QUIT)
     {
         open =false;
     }
+    if (keyboard.type=SDL_KEYUP)
+    {
+        switch (keyboard.key.keysym.sym)
+        {
+            case SDLK_SPACE:
+              spaced=true;
+              break;
+        }
+    }
+    
 }
 
 
@@ -174,18 +247,30 @@ for (int i = 0; i<MAXASS; i++)
 
 Player.PlayerRelPosx = Player.PlayerCalcPosx(Player.PlayerMomentumx, Player.PlayerRelPosx);
 Player.PlayerRelPosy = Player.PlayerCalcPosy(Player.PlayerMomentumy, Player.PlayerRelPosy);
+ std :: cout << "here is bullet count" << bullets.size() << "\n";
+for (int i = 0; i < bullets.size(); i++)
+{
+    bullets[i].posx+=bullets[i].bulletmomentumx;
+    bullets[i].posy+=bullets[i].bulletmomentumy;
+    DrawBullet(bullets[i].posx, bullets[i].posy);
+}
 
 //draw the ship
 
-std::cout << "Ship Position: (" << Player.PlayerRelPosx << ", " << Player.PlayerRelPosy << ")" << std::endl;
+
     SDL_SetRenderDrawColor(renderer,255,255,255,255);
  Player.DrawShip(Player.theta, Player.PlayerRelPosx, Player.PlayerRelPosy, Player.PlayerRadius);
 
 
 DrawAsteroid();
 //render frame
+for (int i =0; i <bullets.size(); i++)
+{
+DrawBullet(bullets[i].posx, bullets[i].posy);
+}
 SDL_RenderPresent(renderer);
 SDL_Delay(5);
+
 
 Player.isdead = collision( Player.PlayerRelPosx,Player.PlayerRelPosy ,Player.PlayerRadius);
 
@@ -193,6 +278,11 @@ Player.isdead = collision( Player.PlayerRelPosx,Player.PlayerRelPosy ,Player.Pla
 Player.PlayerRelPosx = ScreenWrapX(Player.PlayerRelPosx);
 Player.PlayerRelPosy = ScreenWrapY(Player.PlayerRelPosy);
 
+for (int i = 0; i < bullets.size(); i++)
+{
+ bullets[i].posx = ScreenWrapX(bullets[i].posx);
+ bullets[i].posy = ScreenWrapY(bullets[i].posy);
+}
 //ass wall wrap 
 for (int i =0; i<MAXASS; i++)
 {
@@ -303,11 +393,32 @@ for (int i = 0; i<MAXASS; i ++)
     int distancey =asteroid[i].assrelposy- playerposy;
     int squaredist = distancex * distancex + distancey *distancey;
     int combinedradsquare = (asteroid[i].assradius + playerradius) *(asteroid[i].assradius + playerradius);
-    if (combinedradsquare > squaredist)
+    if (combinedradsquare >= squaredist)
     {
         return 1;
     }
     
 }
 return 0;
+}
+void DrawBullet(int posx, int posy)
+{
+    std :: vector<SDL_Point> bulletpoints;
+    int drawx, drawy;
+    drawx= posx-BULLETSIZE;
+    drawy=posy; 
+
+    bulletpoints.push_back({drawx, drawy});
+    drawx = posx;    std :: cout << drawx << "\n";
+    std :: cout << drawy << "\n";
+    drawy =posy-BULLETSIZE;
+    bulletpoints.push_back({drawx, drawy});
+    drawx=posx+BULLETSIZE;
+    drawy = posy;
+    bulletpoints.push_back({drawx, drawy});
+    drawx=posx;
+    drawy=posy + BULLETSIZE;
+    bulletpoints.push_back({drawx, drawy});
+    bulletpoints.push_back({bulletpoints[0]});
+    SDL_RenderDrawLines( renderer, bulletpoints.data(), bulletpoints.size());    
 }
