@@ -49,6 +49,7 @@ class PlayerParent
     float bulletmomentumy;
     int posx;
     int posy;
+    int life=600;
   bulletparent(int theta,int playerposx, int playerposy, int PlayerMomentumx, int PlayerMomentumy) 
 {
     bulletmomentumx = 8 * cos(theta*M_PI/180) ;
@@ -72,6 +73,7 @@ class PlayerParent
                         bulletmomentumx =-20;
                     }
     }
+
  };
 std:: vector <bulletparent> bullets;
 bool collision(int playerposx,int playerposy ,int playerradius);
@@ -166,7 +168,7 @@ if (Player.lives==0)
     open=false;
 }
 
-
+                        
 
 }
 bool spaced=0;
@@ -253,6 +255,11 @@ for (int i = 0; i < bullets.size(); i++)
     bullets[i].posx+=bullets[i].bulletmomentumx;
     bullets[i].posy+=bullets[i].bulletmomentumy;
     DrawBullet(bullets[i].posx, bullets[i].posy);
+    bullets[i].life--;
+    if (bullets[i].life<=0 )
+    {
+    bullets.erase(bullets.begin()+i);
+    }
 }
 
 //draw the ship
