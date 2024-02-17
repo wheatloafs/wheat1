@@ -12,10 +12,12 @@ const int WIDTH = 1400;
 const int HEIGHT=890;
 const float MOMENTUMCONSTANT=0.01;
  int MAXASS=4;
+const int NUMBERSIZE=10;
 const int BULLETSIZE=5;
 const int MAXBULLET=10;
 bool truefalse();
 void DrawAsteroid();
+void DisplayScore();
 class AsteroidParent{
     public:
     int assrelposy;
@@ -156,7 +158,8 @@ void DrawBullet(int posx, int posy);
 
 bool collisionbullet(int playerposx,int playerposy ,int playerradius,int i);
 
-
+const int HighScore=6;
+int score[HighScore]={0,0,0,0,0,0};
 
 int main()
 {
@@ -173,7 +176,8 @@ SDL_RenderClear(renderer);
 SDL_SetRenderDrawColor(renderer,255,255,255,255);
 
 SDL_RenderSetScale(renderer,1,1);    
-//momentums
+
+
 
 //player radius for drawing
 int radius =10;
@@ -297,7 +301,9 @@ for ( int i =0; i<bullets.size(); i++)
                 asteroid.push_back(newass);
                 AsteroidParent newass2(false, asteroid[j].assradius / 2,asteroid[j].assrelposx, asteroid[j].assrelposy);
                 asteroid.push_back(newass);
+               
             }
+         score[5]+=20;
             break;
         }
     }
@@ -339,6 +345,7 @@ for (int i = 0; i < bullets.size(); i++)
     SDL_SetRenderDrawColor(renderer,255,255,255,255);
  Player.DrawShip(Player.theta, Player.PlayerRelPosx, Player.PlayerRelPosy, Player.PlayerRadius);
 
+DisplayScore();
 
 DrawAsteroid();
 //render frame
@@ -368,6 +375,7 @@ for (int i =0; i<MAXASS; i++)
      asteroid[i].assrelposy =ScreenWrapY(asteroid[i].assrelposy);
 }
 }
+score[2]+=1;
 MAXASS++;
 }while (open);
 
@@ -444,7 +452,7 @@ for (int i = 0; i<asteroid.size(); i ++)
 return 0;
 }
 void DrawBullet(int posx, int posy)
-{
+{ 
     std :: vector<SDL_Point> bulletpoints;
     int drawx, drawy;
     drawx= posx-BULLETSIZE;
@@ -475,4 +483,109 @@ bool collisionbullet(int playerposx,int playerposy ,int playerradius,int i)
         return true;
     }
     return false;
+}
+
+void DisplayScore()
+{
+int startposx=30;
+int startposy=30;
+int val=0;
+std :: vector<SDL_Point> numberpoints;
+for (int i =0; i< HighScore; i++)
+    {
+        numberpoints.clear();
+        if(i>0)
+        {
+        while (score[i] > 9)
+        {
+            score[i]-=10;
+            score[i-1]+=1;
+        }
+        }
+        val=score[i];
+        switch (val)
+        {
+        case 0 :
+            numberpoints.push_back({startposx * (i + 1), startposy});
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy});
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy+NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy+ 2 * NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1), startposy+ 2 * NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1), startposy});
+             
+            break;
+        case 1:
+            numberpoints.push_back({startposx * (i + 1), startposy});
+            numberpoints.push_back({startposx * (i + 1), startposy+ 2 * NUMBERSIZE});
+            
+            break;
+        case 2:
+           
+            numberpoints.push_back({startposx * (i + 1), startposy});
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy});
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy+NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1), startposy+  NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1), startposy+ 2 * NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy+ 2 * NUMBERSIZE});
+            break;
+        case 3:
+            numberpoints.push_back({startposx * (i + 1), startposy});
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy});
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy+NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1), startposy+NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy+NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy+ 2 * NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1), startposy+ 2 * NUMBERSIZE});
+            break;
+        case 4:
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy});
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy+NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy+ 2 * NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy+NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1), startposy+NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1), startposy});
+            break;
+        case 5:
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy});
+            numberpoints.push_back({startposx * (i + 1), startposy});
+            numberpoints.push_back({startposx * (i + 1), startposy+NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1) + NUMBERSIZE, startposy+NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy+ 2 * NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1), startposy+ 2 * NUMBERSIZE});
+            break;
+        case 6:
+            numberpoints.push_back({startposx * (i + 1), startposy+ 2 * NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy+ 2 * NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy+ NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1), startposy+  NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1), startposy+ 2 * NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1), startposy});
+            numberpoints.push_back({startposx * (i + 1)+NUMBERSIZE, startposy});
+            break;
+        case 7:
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy+ 2 * NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy});
+            numberpoints.push_back({startposx * (i + 1), startposy });
+            break;
+        case 8:
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy});
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy+ 2 * NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1), startposy+ 2 * NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1), startposy});
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy});
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy+ NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1), startposy+ NUMBERSIZE});
+            break;
+        case 9:
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy+ 2 * NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy});
+            numberpoints.push_back({startposx * (i + 1), startposy});
+            numberpoints.push_back({startposx * (i + 1), startposy+ NUMBERSIZE});
+            numberpoints.push_back({startposx * (i + 1)+ NUMBERSIZE, startposy+ NUMBERSIZE});
+            break;
+            
+        }
+        SDL_RenderDrawLines( renderer, numberpoints.data(), numberpoints.size());   
+    }
+    
 }
