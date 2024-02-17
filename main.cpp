@@ -11,7 +11,7 @@ int ScreenWrapY(int relposy);
 const int WIDTH = 1400;
 const int HEIGHT=890;
 const float MOMENTUMCONSTANT=0.01;
-const int MAXASS=4;
+ int MAXASS=4;
 const int BULLETSIZE=5;
 const int MAXBULLET=10;
 bool truefalse();
@@ -178,7 +178,14 @@ SDL_RenderSetScale(renderer,1,1);
 //player radius for drawing
 int radius =10;
 
-//initialize asteroid
+// initialize player
+PlayerParent Player;
+Player.PlayerRelPosx=WIDTH/2;
+Player.PlayerRelPosy=HEIGHT/2;
+//should add a way to close the game sometime uhhhh gameloop
+bool open=true;
+do 
+{
 
 for (int i=0;i<MAXASS;i++)
 {
@@ -186,13 +193,8 @@ for (int i=0;i<MAXASS;i++)
    asteroid.push_back(newasteroid);
 }
 
-// initialize player
-PlayerParent Player;
-Player.PlayerRelPosx=WIDTH/2;
-Player.PlayerRelPosy=HEIGHT/2;
-//should add a way to close the game sometime uhhhh gameloop
-bool open=true;
-while(open)
+
+while(asteroid.size()>0 && open)
 {
     //clear the window
 SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -265,7 +267,7 @@ while (SDL_PollEvent(&keyboard))
     }
     if (keyboard.type == SDL_QUIT)
     {
-        open =false;
+            open=false;
     }
     if (keyboard.type=SDL_KEYUP)
     {
@@ -366,6 +368,9 @@ for (int i =0; i<MAXASS; i++)
      asteroid[i].assrelposy =ScreenWrapY(asteroid[i].assrelposy);
 }
 }
+MAXASS++;
+}while (open);
+
 return 0;
 }
 
