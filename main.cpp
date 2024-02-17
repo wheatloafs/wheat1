@@ -2,7 +2,7 @@
 #include <SDL2/SDL.h>
 #include <vector>
 #include <cmath>
-
+#include <algorithm>
 SDL_Window* window= nullptr;
 SDL_Renderer* renderer=nullptr;
 SDL_Event keyboard;
@@ -11,10 +11,13 @@ int ScreenWrapY(int relposy);
 const int WIDTH = 1400;
 const int HEIGHT=890;
 const float MOMENTUMCONSTANT=0.01;
-const int MAXASS=10;
+const int MAXASS=4;
 const int BULLETSIZE=5;
 const int MAXBULLET=10;
-struct AsteroidParent{
+bool truefalse();
+void DrawAsteroid();
+class AsteroidParent{
+    public:
     int assrelposy;
     int assrelposx;
     int assradius;
@@ -22,9 +25,44 @@ struct AsteroidParent{
    float assmomenty;
     float assmomentx;
     bool assisdead;
+    bool assispreg;
     std :: vector<int> chaos;
+    AsteroidParent(bool preg, int radius, int posx, int posy)
+    {
+        assisdead=false;
+    bool negative;
+    assradius =radius;
+    asssides =rand()%9+5;
+    assrelposx =posx;
+    assrelposy =posy;
+    assmomentx=2;
+    negative= truefalse();
+    if (negative)
+        {
+            assmomentx = assmomentx * -1;
+        }
+       negative= truefalse();
+      assmomenty=2;
+         if (negative)
+        {
+            assmomenty =assmomenty * -1;
+        }
+         for (int j=0; j < asssides; j++)
+            {
+                if (truefalse())
+                {
+                chaos.push_back( rand()% (assradius / 2 + 1)) ;
+
+                }
+                else 
+                {
+                     chaos.push_back( 0) ;
+                }
+            }
+    assispreg=preg;
+}
 };
-AsteroidParent asteroid[MAXASS];
+std :: vector <AsteroidParent> asteroid;
 
 class PlayerParent
 {
@@ -101,7 +139,7 @@ void PlayerParent :: DrawShip(float theta, int PlayerRelPosx, int PlayerRelPosy,
     drawy=PlayerRelPosy+sin((theta-126) * M_PI/ 180) * PlayerRadius;
     PlayerPoints.push_back({drawx,drawy});
 
-    
+
     drawx=PlayerRelPosx+cos((theta+126) * M_PI/180) * PlayerRadius;
     drawy=PlayerRelPosy+sin((theta+126) * M_PI/180) * PlayerRadius;
     PlayerPoints.push_back({drawx,drawy});
@@ -110,13 +148,13 @@ void PlayerParent :: DrawShip(float theta, int PlayerRelPosx, int PlayerRelPosy,
    SDL_RenderDrawLines(renderer, PlayerPoints.data(), PlayerPoints.size());
 }
 
-void DrawAsteroid();
+
 
 void AssInit();
 
 void DrawBullet(int posx, int posy);
 
-bool truefalse();
+bool collisionbullet(int playerposx,int playerposy ,int playerradius,int i);
 
 
 
@@ -141,7 +179,12 @@ SDL_RenderSetScale(renderer,1,1);
 int radius =10;
 
 //initialize asteroid
-AssInit();
+
+for (int i=0;i<MAXASS;i++)
+{
+   AsteroidParent newasteroid(true, rand()%40+20, rand() %WIDTH, rand()% HEIGHT);
+   asteroid.push_back(newasteroid);
+}
 
 // initialize player
 PlayerParent Player;
@@ -168,13 +211,13 @@ if (Player.lives==0)
     open=false;
 }
 
-                        
+
 
 }
 bool spaced=0;
 while (SDL_PollEvent(&keyboard))
 {
-  
+
     if (keyboard.type ==SDL_KEYDOWN)
     {
         switch (keyboard.key.keysym.sym)
@@ -187,7 +230,7 @@ while (SDL_PollEvent(&keyboard))
                 std :: cout << "making bullet";
                 bulletparent NewBullet(Player.theta,Player.PlayerRelPosx, Player.PlayerRelPosy,Player.PlayerMomentumx, Player.PlayerMomentumy);
                 bullets.push_back(NewBullet);
-                
+
             }
 
             break;
@@ -212,12 +255,12 @@ while (SDL_PollEvent(&keyboard))
                     }
             break;
             case SDLK_RIGHT:
-            Player.theta-=8;
-            break;
-            case SDLK_LEFT:
             Player.theta+=8;
             break;
-            
+            case SDLK_LEFT:
+            Player.theta-=8;
+            break;
+
         }
     }
     if (keyboard.type == SDL_QUIT)
@@ -233,23 +276,49 @@ while (SDL_PollEvent(&keyboard))
               break;
         }
     }
-    
+
 }
 
 
-//update position
-
-
-//udate ass position
-for (int i = 0; i<MAXASS; i++)
+//update assisdead
+for ( int i =0; i<bullets.size(); i++)
 {
+    for (int j =0; j<asteroid.size();j++)
+    {
+        if (!asteroid[j].assisdead && collisionbullet(bullets[i].posx, bullets[i].posy, BULLETSIZE,j))
+        {
+            asteroid[j].assisdead=true;
+            bullets[i].life=0;
+            if (asteroid[j].assispreg)
+            {
+                AsteroidParent newass(false, asteroid[j].assradius / 2,asteroid[j].assrelposx, asteroid[j].assrelposy);
+                asteroid.push_back(newass);
+                AsteroidParent newass2(false, asteroid[j].assradius / 2,asteroid[j].assrelposx, asteroid[j].assrelposy);
+                asteroid.push_back(newass);
+            }
+            break;
+        }
+    }
+}
+asteroid.erase(
+   std::remove_if(
+      asteroid.begin(), asteroid.end(),
+      [](AsteroidParent a){ return a.assisdead;}),
+   asteroid.end()
+);
+//udate ass position
+for (int i = 0; i<asteroid.size(); i++)
+{
+
+
     asteroid[i].assrelposx += asteroid[i].assmomentx;
     asteroid[i].assrelposy += asteroid[i].assmomenty;
+
 }
 
 Player.PlayerRelPosx = Player.PlayerCalcPosx(Player.PlayerMomentumx, Player.PlayerRelPosx);
 Player.PlayerRelPosy = Player.PlayerCalcPosy(Player.PlayerMomentumy, Player.PlayerRelPosy);
- std :: cout << "here is bullet count" << bullets.size() << "\n";
+
 for (int i = 0; i < bullets.size(); i++)
 {
     bullets[i].posx+=bullets[i].bulletmomentumx;
@@ -310,7 +379,7 @@ int drawx=0;
 int drawy =0;
 
 std :: vector<SDL_Point> asspoints;
-for (int j=0;j<MAXASS; j++)
+for (int j=0;j<asteroid.size(); j++)
 {
     int angle= 360/asteroid[j].asssides;
 for(int i =0; i<asteroid[j].asssides;i++)
@@ -326,47 +395,7 @@ asspoints.clear();
 }
 
 }
-void AssInit()
-{
-    
 
-
-    bool negative;
-    for (int i = 0; i<MAXASS;i++)
-    {
-        negative= truefalse();
-        asteroid[i].assradius =rand()%40+10;
-        asteroid[i].asssides =rand()%9+5;
-        asteroid[i].assrelposx =rand() %WIDTH;
-        asteroid[i].assrelposy =rand() %HEIGHT;
-        asteroid[i].assmomentx=rand()%3+-3;
-        if (negative)
-        {
-            asteroid[i].assmomentx =asteroid[i].assmomentx * -1;
-        }
-        negative= truefalse();
-        asteroid[i].assmomenty=rand()%3+-3;
-         if (negative)
-        {
-            asteroid[i].assmomenty =asteroid[i].assmomenty * -1;
-        }
-       
-        
-            for (int j=0; j < asteroid[i].asssides; j++)
-            {
-                if (truefalse())
-                {
-                asteroid[i].chaos.push_back( rand()% (asteroid[i].assradius / 2 + 1)) ;
-                
-                }
-                else 
-                {
-                     asteroid[i].chaos.push_back( 0) ;
-                }
-            }
-        
-    }
-}
 int ScreenWrapX(int relposx) {
     if (relposx <= 0) {
         relposx = WIDTH - 1;
@@ -392,9 +421,10 @@ bool truefalse()
     return maybe;
 }
 
+
 bool collision(int playerposx,int playerposy ,int playerradius)
 {
-for (int i = 0; i<MAXASS; i ++)
+for (int i = 0; i<asteroid.size(); i ++)
 {
     int distancex = asteroid[i].assrelposx-playerposx;
     int distancey =asteroid[i].assrelposy- playerposy;
@@ -404,7 +434,7 @@ for (int i = 0; i<MAXASS; i ++)
     {
         return 1;
     }
-    
+
 }
 return 0;
 }
@@ -416,8 +446,8 @@ void DrawBullet(int posx, int posy)
     drawy=posy; 
 
     bulletpoints.push_back({drawx, drawy});
-    drawx = posx;    std :: cout << drawx << "\n";
-    std :: cout << drawy << "\n";
+    drawx = posx;    
+  
     drawy =posy-BULLETSIZE;
     bulletpoints.push_back({drawx, drawy});
     drawx=posx+BULLETSIZE;
@@ -428,4 +458,16 @@ void DrawBullet(int posx, int posy)
     bulletpoints.push_back({drawx, drawy});
     bulletpoints.push_back({bulletpoints[0]});
     SDL_RenderDrawLines( renderer, bulletpoints.data(), bulletpoints.size());    
+}
+bool collisionbullet(int playerposx,int playerposy ,int playerradius,int i)
+{
+    int distancex = asteroid[i].assrelposx-playerposx;
+    int distancey =asteroid[i].assrelposy- playerposy;
+    int squaredist = distancex * distancex + distancey *distancey;
+    int combinedradsquare = (asteroid[i].assradius + playerradius) *(asteroid[i].assradius + playerradius);
+    if (combinedradsquare >= squaredist)
+    {
+        return true;
+    }
+    return false;
 }
