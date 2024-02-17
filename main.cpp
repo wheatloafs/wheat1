@@ -18,6 +18,7 @@ const int MAXBULLET=10;
 bool truefalse();
 void DrawAsteroid();
 void DisplayScore();
+void lifecounter(int lives, int playerRadius);
 class AsteroidParent{
     public:
     int assrelposy;
@@ -211,6 +212,8 @@ Player.lives--;
 Player.invuln = 10;
 Player.PlayerRelPosx= WIDTH/2;
 Player.PlayerRelPosy= HEIGHT/2;
+Player.PlayerMomentumx=0;
+Player.PlayerMomentumy=0;
 Player.isdead=false;
 if (Player.lives==0)
 {
@@ -353,6 +356,7 @@ for (int i =0; i <bullets.size(); i++)
 {
 DrawBullet(bullets[i].posx, bullets[i].posy);
 }
+lifecounter(Player.lives, Player.PlayerRadius);
 SDL_RenderPresent(renderer);
 SDL_Delay(5);
 
@@ -588,4 +592,35 @@ for (int i =0; i< HighScore; i++)
         SDL_RenderDrawLines( renderer, numberpoints.data(), numberpoints.size());   
     }
     
+}
+void lifecounter(int lives, int PlayerRadius)
+{
+    
+    int drawx=0;
+    int drawy=0;
+    int theta=270;
+    int PlayerRelPosx=50;
+    int PlayerRelPosy=90;
+    for (int i=0; i<lives;i++)
+    {
+    PlayerRelPosx=50 * (i+1);
+    
+   
+    std :: vector<SDL_Point> PlayerPoints;
+    drawx=PlayerRelPosx+cos(theta*M_PI/180) * 2 * PlayerRadius;
+    drawy=PlayerRelPosy+sin(theta*M_PI/180) * 2 * PlayerRadius;
+    PlayerPoints.push_back({drawx,drawy}) ;
+
+ drawx=PlayerRelPosx+cos((theta-126) * M_PI/ 180) * PlayerRadius;
+    drawy=PlayerRelPosy+sin((theta-126) * M_PI/ 180) * PlayerRadius;
+    PlayerPoints.push_back({drawx,drawy});
+
+
+    drawx=PlayerRelPosx+cos((theta+126) * M_PI/180) * PlayerRadius;
+    drawy=PlayerRelPosy+sin((theta+126) * M_PI/180) * PlayerRadius;
+    PlayerPoints.push_back({drawx,drawy});
+
+    PlayerPoints.push_back(PlayerPoints[0]);
+   SDL_RenderDrawLines(renderer, PlayerPoints.data(), PlayerPoints.size());
+    }
 }
