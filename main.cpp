@@ -83,7 +83,7 @@ public:
     void DrawShip(float theta, int PlayerRelPosx, int PlayerRelPosy, int PlayerRadius);
     bool isdead = false;
     int lives = 3;
-    int invuln;
+    int invuln = 0;
 };
 class bulletparent
 {
@@ -360,9 +360,16 @@ int main()
 
                 Gratify(popups[i].posx, popups[i].posy);
             }
-
-            Player.DrawShip(Player.theta, Player.PlayerRelPosx, Player.PlayerRelPosy, Player.PlayerRadius);
-
+            if (Player.invuln == 0)
+            {
+                Player.DrawShip(Player.theta, Player.PlayerRelPosx, Player.PlayerRelPosy, Player.PlayerRadius);
+            }
+            else
+            {
+                SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
+                Player.DrawShip(Player.theta, Player.PlayerRelPosx, Player.PlayerRelPosy, Player.PlayerRadius);
+                SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+            }
             DisplayScore();
 
             DrawAsteroid();
@@ -375,20 +382,19 @@ int main()
             SDL_RenderPresent(renderer);
             SDL_Delay(5);
 
+            if (Player.invuln == 0)
+            {
+                Player.isdead = collision(Player.PlayerRelPosx, Player.PlayerRelPosy, Player.PlayerRadius);
+                if (collision(Player.PlayerRelPosx, Player.PlayerRelPosy, Player.PlayerRadius))
+                {
+                    Player.invuln = 100;
+                }
+            }
+            if (Player.invuln > 0)
+            {
+                Player.invuln--;
+            }
 
-            if (Player.invuln==0)
-            {
-            Player.isdead = collision(Player.PlayerRelPosx, Player.PlayerRelPosy, Player.PlayerRadius);
-            if (collision(Player.PlayerRelPosx, Player.PlayerRelPosy, Player.PlayerRadius))
-            {
-                Player.invuln=100;
-            }
-            }
-            if (Player.invuln>0)
-            {
-            Player.invuln--;
-            }
-            
             // wall wrap
             Player.PlayerRelPosx = ScreenWrapX(Player.PlayerRelPosx);
             Player.PlayerRelPosy = ScreenWrapY(Player.PlayerRelPosy);
