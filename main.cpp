@@ -218,7 +218,6 @@ int main()
             if (Player.isdead == true)
             {
                 Player.lives--;
-                Player.invuln = 10;
                 Player.PlayerRelPosx = WIDTH / 2;
                 Player.PlayerRelPosy = HEIGHT / 2;
                 Player.PlayerMomentumx = 0;
@@ -376,8 +375,20 @@ int main()
             SDL_RenderPresent(renderer);
             SDL_Delay(5);
 
-            Player.isdead = collision(Player.PlayerRelPosx, Player.PlayerRelPosy, Player.PlayerRadius);
 
+            if (Player.invuln==0)
+            {
+            Player.isdead = collision(Player.PlayerRelPosx, Player.PlayerRelPosy, Player.PlayerRadius);
+            if (collision(Player.PlayerRelPosx, Player.PlayerRelPosy, Player.PlayerRadius))
+            {
+                Player.invuln=100;
+            }
+            }
+            if (Player.invuln>0)
+            {
+            Player.invuln--;
+            }
+            
             // wall wrap
             Player.PlayerRelPosx = ScreenWrapX(Player.PlayerRelPosx);
             Player.PlayerRelPosy = ScreenWrapY(Player.PlayerRelPosy);
@@ -396,6 +407,7 @@ int main()
         }
         score[2] += 1;
         MAXASS++;
+        Player.lives++;
     } while (open);
 
     return 0;
