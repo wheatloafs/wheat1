@@ -18,6 +18,7 @@ const int MAXBULLET = 10;
 const int MAXPREG = 3;
 bool truefalse();
 void DrawAsteroid();
+void menu();
 void Gratify(int startposx, int startposy);
 void DisplayScore();
 void lifecounter(int lives, int playerRadius);
@@ -188,18 +189,45 @@ int main()
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
     SDL_RenderSetScale(renderer, 1, 1);
-
+ std ::vector<SDL_Point> stars;
     // player radius for drawing
     int radius = 10;
-
+for (int i=0; i<400; i++)
+{
+stars.push_back({rand()%WIDTH, rand()% HEIGHT});
+}
     std ::vector<gratifier> popups;
 
     // initialize player
     PlayerParent Player;
     Player.PlayerRelPosx = WIDTH / 2;
     Player.PlayerRelPosy = HEIGHT / 2;
-    // should add a way to close the game sometime uhhhh gameloop
+    bool spaced = 1;
     bool open = true;
+    while (spaced == true)
+    {
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+        menu();
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        SDL_RenderDrawPoints(renderer, stars.data(), stars.size());
+        SDL_RenderPresent(renderer);
+        SDL_Delay(5);
+
+        while (SDL_PollEvent(&keyboard))
+        {
+
+            if (keyboard.type == SDL_KEYDOWN)
+            {
+                switch (keyboard.key.keysym.sym)
+                {
+                case SDLK_SPACE:
+                    spaced = false;
+                }
+            }
+        }
+    }
+
     do
     {
 
@@ -353,8 +381,11 @@ int main()
                     popups.erase(popups.begin() + i);
                 }
             }
+             SDL_SetRenderDrawColor(renderer, 120, 120, 120, 255);
+        SDL_RenderDrawPoints(renderer, stars.data(), stars.size());
             SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
             // draw the ship
+            
             for (int i = 0; i < popups.size(); i++)
             {
 
@@ -681,4 +712,97 @@ void Gratify(int startposx, int startposy)
 
         SDL_RenderDrawLines(renderer, numberpoints.data(), numberpoints.size());
     }
+}
+void menu()
+{
+std ::vector<SDL_Point> menupoints;
+int posx = (WIDTH / 2)-200;
+int posy = (HEIGHT / 2 )-90;
+int stepsize=20;
+int i =1;
+SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+menupoints.push_back({posx+(i * stepsize),posy});
+menupoints.push_back({posx+(i * stepsize)+(stepsize ),posy- (2 * stepsize)});
+menupoints.push_back({posx+(i * stepsize)+( 2 *stepsize ),posy});
+SDL_RenderDrawLines(renderer, menupoints.data(), menupoints.size());
+menupoints.clear();
+i+=2;
+SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
+menupoints.push_back({posx+(i * stepsize),posy});
+menupoints.push_back({posx+(i * stepsize)+(2 * stepsize),posy});
+menupoints.push_back({posx+(i * stepsize)+(2 * stepsize),posy-stepsize});
+menupoints.push_back({posx+(i * stepsize),posy-stepsize});
+menupoints.push_back({posx+(i * stepsize),posy-(2 * stepsize)});
+menupoints.push_back({posx+(i * stepsize)+(2 * stepsize),posy- ( 2 * stepsize)});
+SDL_RenderDrawLines(renderer, menupoints.data(), menupoints.size());
+i+=2;
+SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+menupoints.clear();
+menupoints.push_back({posx+(i * stepsize),posy-(2 * stepsize)});
+menupoints.push_back({posx+(i * stepsize)+(2 * stepsize),posy- ( 2 * stepsize)});
+menupoints.push_back({posx+(i * stepsize)+(stepsize),posy- ( 2 * stepsize)});
+menupoints.push_back({posx+(i * stepsize)+(stepsize ),posy});
+SDL_RenderDrawLines(renderer, menupoints.data(), menupoints.size());
+menupoints.clear();
+i+=2;
+SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
+menupoints.push_back({posx+(i * stepsize)+(2 * stepsize),posy- ( 2 * stepsize)});
+menupoints.push_back({posx+(i * stepsize),posy-(2 * stepsize)});
+menupoints.push_back({posx+(i * stepsize),posy-stepsize});
+menupoints.push_back({posx+(i * stepsize)+(2 * stepsize),posy-stepsize});
+menupoints.push_back({posx+(i * stepsize),posy-stepsize});
+menupoints.push_back({posx+(i * stepsize),posy});
+menupoints.push_back({posx+(i * stepsize)+( 2 *stepsize ),posy});
+SDL_RenderDrawLines(renderer, menupoints.data(), menupoints.size());
+menupoints.clear();
+i+=2;
+SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+menupoints.push_back({posx+(i * stepsize),posy});
+menupoints.push_back({posx+(i * stepsize),posy-(2 * stepsize)});
+menupoints.push_back({posx+(i * stepsize)+(2 * stepsize),posy- ( 2 * stepsize)});
+menupoints.push_back({posx+(i * stepsize)+(2 * stepsize),posy-stepsize});
+menupoints.push_back({posx+(i * stepsize),posy-stepsize});
+menupoints.push_back({posx+(i * stepsize)+( 2 *stepsize ),posy});
+SDL_RenderDrawLines(renderer, menupoints.data(), menupoints.size());
+menupoints.clear();
+i+=2;
+SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
+menupoints.push_back({posx+(i * stepsize),posy});
+menupoints.push_back({posx+(i * stepsize),posy-(2 * stepsize)});
+menupoints.push_back({posx+(i * stepsize)+(2 * stepsize),posy- ( 2 * stepsize)});
+menupoints.push_back({posx+(i * stepsize)+( 2 *stepsize ),posy});
+menupoints.push_back({posx+(i * stepsize),posy});
+SDL_RenderDrawLines(renderer, menupoints.data(), menupoints.size());
+menupoints.clear();
+i+=2;
+SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+menupoints.push_back({posx+(i * stepsize),posy-(2 * stepsize)});
+menupoints.push_back({posx+(i * stepsize)+(2 * stepsize),posy- ( 2 * stepsize)});
+menupoints.push_back({posx+(i * stepsize)+(stepsize),posy- ( 2 * stepsize)});
+menupoints.push_back({posx+(i * stepsize)+(stepsize ),posy});
+menupoints.push_back({posx+(i * stepsize),posy});
+menupoints.push_back({posx+(i * stepsize)+( 2 *stepsize ),posy});
+SDL_RenderDrawLines(renderer, menupoints.data(), menupoints.size());
+menupoints.clear();
+i+=2;
+SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
+menupoints.push_back({posx+(i * stepsize),posy});
+menupoints.push_back({posx+(i * stepsize),posy-(2 * stepsize)});
+menupoints.push_back({posx+(i * stepsize)+(stepsize),posy- ( 2 * stepsize)});
+menupoints.push_back({posx+(i * stepsize)+(2 * stepsize),posy-stepsize});
+menupoints.push_back({posx+(i * stepsize)+(stepsize ),posy});
+menupoints.push_back({posx+(i * stepsize),posy});
+SDL_RenderDrawLines(renderer, menupoints.data(), menupoints.size());
+menupoints.clear();
+i+=2;
+SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+menupoints.push_back({posx+(i * stepsize),posy});
+menupoints.push_back({posx+(i * stepsize)+(2 * stepsize),posy});
+menupoints.push_back({posx+(i * stepsize)+(2 * stepsize),posy-stepsize});
+menupoints.push_back({posx+(i * stepsize),posy-stepsize});
+menupoints.push_back({posx+(i * stepsize),posy-(2 * stepsize)});
+menupoints.push_back({posx+(i * stepsize)+(2 * stepsize),posy- ( 2 * stepsize)});
+SDL_RenderDrawLines(renderer, menupoints.data(), menupoints.size());
+menupoints.clear();
+
 }
